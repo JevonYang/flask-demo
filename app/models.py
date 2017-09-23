@@ -24,3 +24,11 @@ class Repos(db.Model):
             'description': self.description
         }
         return json_repos
+
+    @staticmethod
+    def from_json(json_repo):
+        name= json_repo.get('name')
+        url=json_repo.get('url')
+        description = json_repo.get('description')
+        author = json_repo.get('author')
+        return Repos(name=name, url=url, description=description, author=author)

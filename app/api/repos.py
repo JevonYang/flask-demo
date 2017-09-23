@@ -4,7 +4,7 @@ from .. import db
 from ..models import Repos
 from . import api
 
-GIT_DIR='C:\\Users'
+GIT_DIR='C:\\Windows'
 REPO_PREFIX='git@github.com:/home/repositories/'
 
 def find_all_repos(file_dir):
@@ -40,3 +40,15 @@ def update_repositories():
         db.session.add(tempRepo)
         db.session.commit()
     return "Repos updated!"
+
+@api.route('/repos/<int:id>', methods=['GET'])
+def get_repo(id):
+    repo=Repos.query.get_or_404(id)
+    return jsonify(repo.to_json())
+
+@api.route('/repos/', methods=['POST'])
+def new_repo():
+    repo=Repos.from_json(request.json)
+    db.session.add(repo)
+    db.session.commit()
+    return jsonify(repo.to_json()), 201, {'Location': url_for('api.get_repo', id=repo.id, _external=True)}
