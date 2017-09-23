@@ -28,7 +28,12 @@ def get_repositories():
     next = None
     if pagination.has_next:
         next = url_for('api.get_repositories', page=page+1, _external=True)
-    return jsonify({'names': [repo.to_json() for repo in repos], 'prev': prev,'next': next,'count': pagination.total})
+    return jsonify({
+        'names': [repo.to_json() for repo in repos],
+        'prev': prev,
+        'next': next,
+        'count': pagination.total
+    })
 
 
 @api.route('/repos/update', methods=['GET'])
@@ -46,9 +51,29 @@ def get_repo(id):
     repo=Repos.query.get_or_404(id)
     return jsonify(repo.to_json())
 
-@api.route('/repos/', methods=['POST'])
+@api.route('/repos/add', methods=['POST'])
 def new_repo():
     repo=Repos.from_json(request.json)
+    print "repo: %s" % repo
+    if repo == "bad request":
+        return "404"
     db.session.add(repo)
     db.session.commit()
     return jsonify(repo.to_json()), 201, {'Location': url_for('api.get_repo', id=repo.id, _external=True)}
+
+@api.route('/repos/<int:id>', methods=['PUT'])
+def edit_repo(id):
+    repo=Repos.query.get_or_404(id)
+    print type(repo)
+    repo.author=request.json.get('author',repo.author)
+    repo.description = request.json.get('description', repo.description)
+    db.session.add(repo)
+    db.session.commit()
+    return jsonify(repo.to_json())
+
+@api.route('/repos/<int:id>', methods=['DELETE'])
+def del_repo(id):
+    repo=Repos.query.get_or_404(id)
+    db.session.delete(repo)
+    db.session.commit()
+    return "#%d repo has deleted!" % id

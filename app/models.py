@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 from datetime import datetime
 import hashlib
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -5,6 +6,17 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from markdown import markdown
 from flask import current_app, request, url_for
 from . import db
+import json
+
+def is_json(myjson):
+    if isinstance(myjson, str):  # 首先判断变量是否为字符串
+        try:
+            json.loads(myjson, encoding='utf-8')
+        except ValueError:
+            return False
+        return True
+    else:
+        return False
 
 class Repos(db.Model):
     __tablename__='repositories'
@@ -27,8 +39,14 @@ class Repos(db.Model):
 
     @staticmethod
     def from_json(json_repo):
-        name= json_repo.get('name')
-        url=json_repo.get('url')
+        print "json_repo:%s" % json_repo
+        if json_repo is None:
+            return "bad request"
+        name = json_repo.get('name')
+        #print name
+        url = json_repo.get('url')
         description = json_repo.get('description')
         author = json_repo.get('author')
         return Repos(name=name, url=url, description=description, author=author)
+
+
